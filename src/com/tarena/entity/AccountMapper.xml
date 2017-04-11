@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.tarena.dao.AccountMapper">
+
+<select id="findByPage"  parameterType="com.tarena.entity.page.AccountPage"
+						resultType="com.tarena.entity.Account">
+	
+	select * from (
+  		select e.*,rownum r  from
+   			 (select* from account_dfz
+   			 
+   			 <where>
+   			 	<if test='idcardNo!=null &amp;&amp; !idcardNo.equals("")'>
+   			 			and idcard_no=#{idcardNo}
+   			 	</if>
+   			 	<if test='realName!=null &amp;&amp; !realName.equals("")'>
+   			 			and real_name=#{realName}
+   			 	</if>
+   			 	<if test='loginName!=null &amp;&amp; !loginName.equals("") '>
+   			 			and login_name=#{loginName}
+   			 	</if>
+   			 	<if test='status!=null &amp;&amp; !status.equals("") '>
+   			 			and status=#{status}
+   			 	</if>		 
+   			 </where>
+   			 order by account_id	 
+   			 ) e 
+   		)  where r>#{begin} and r &lt;=#{end} 					
+</select>
+
+<select id="findRows" parameterType="com.tarena.entity.page.AccountPage"
+				resultType="int">
+
+select count(*) from account_dfz
+		 <where>
+   			 	<if test='idcardNo!=null &amp;&amp; !idcardNo.equals("")'>
+   			 			and idcard_no=#{idcardNo}
+   			 	</if>
+   			 	<if test='realName!=null &amp;&amp; !realName.equals("")'>
+   			 			and real_name=#{realName}
+   			 	</if>
+   			 	<if test='loginName!=null &amp;&amp; !loginName.equals("") '>
+   			 			and login_name=#{loginName}
+   			 	</if>
+   			 	<if test='status!=null &amp;&amp; !status.equals("") '>
+   			 			and status=#{status}
+   			 	</if>		 
+   			 </where>
+
+</select>
+
+<!-- 暂停一条账务账号 -->
+	<update id="pause"
+		parameterType="int">
+		update account_dfz set status='1',
+		pause_date=sysdate
+		where account_id=#{id}
+	</update>
+
+<update id="start" parameterType="int">
+		update account_dfz set status='0',
+		pause_date=null
+		 where  account_id=#{id}
+
+</update>
+<update id="delete" parameterType="int">
+		update account_dfz set status='2' where  account_id=#{id}
+
+</update>
+
+<insert id="insert" parameterType="com.tarena.entity.Account">
+		insert into account_dfz  values(
+								seq_account_dfz.nextval,
+								#{recommender_id,jdbcType=INTEGER},
+								#{login_name,jdbcType=VARCHAR},
+								#{login_passwd,jdbcType=VARCHAR},
+								#{status,jdbcType=CHAR},
+								#{create_date,jdbcType=DATE},
+								#{close_date,jdbcType=DATE},
+								#{pause_date,jdbcType=DATE},
+								#{real_name,jdbcType=VARCHAR},
+								#{idcard_no,jdbcType=CHAR},
+								#{birthdate,jdbcType=DATE},
+								#{gender,jdbcType=CHAR},
+								#{occupation,jdbcType=VARCHAR},
+								#{telephone,jdbcType=VARCHAR},
+								#{email,jdbcType=VARCHAR},
+								#{mailaddress,jdbcType=VARCHAR},
+								#{zipcode,jdbcType=CHAR},
+								#{qq,jdbcType=VARCHAR},
+								#{last_login_time,jdbcType=DATE},
+								#{last_login_ip,jdbcType=VARCHAR})
+</insert>
+
+<select id="findById" parameterType="int"  resultType="com.tarena.entity.Account">
+	select * from account_dfz where account_id=#{account_id}
+
+</select>
+
+<update id="update" parameterType="com.tarena.entity.Account">
+
+	update account_dfz set   
+								recommender_id=#{recommender_id,jdbcType=INTEGER},
+								login_name=#{login_name,jdbcType=VARCHAR},																			
+								real_name=#{real_name,jdbcType=VARCHAR},
+								idcard_no=#{idcard_no,jdbcType=CHAR},
+								birthdate=#{birthdate,jdbcType=DATE},
+								gender=#{gender,jdbcType=CHAR},
+								occupation=#{occupation,jdbcType=VARCHAR},
+								telephone=#{telephone,jdbcType=VARCHAR},
+								email=#{email,jdbcType=VARCHAR},
+								mailaddress=#{mailaddress,jdbcType=VARCHAR},
+								zipcode=#{zipcode,jdbcType=CHAR},
+								qq=#{qq,jdbcType=VARCHAR}
+							
+								
+					
+					where account_id=#{account_id}
+
+</update>
+
+<select id="findByIdcardNo" parameterType="string" resultType="com.tarena.entity.Account">
+
+	select * from account_dfz where idcard_no=#{idcardNo}
+
+
+</select>
+
+
+
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

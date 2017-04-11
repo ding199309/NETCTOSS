@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+ <mapper namespace="com.tarena.dao.AdminMapper">
+ 
+ 	
+	<!-- findByPage -->
+	<select id="findByPage"
+		parameterType="com.tarena.entity.page.AdminPage"
+		resultMap="adminMap">
+		select * from (
+			select a.*,rownum r from (
+				select * from admin_dfz_info
+				where admin_id in (
+					select ai.admin_id
+					from admin_info ai
+					left join admin_dfz_role ar on ar.admin_id=ai.admin_id
+					left join role_dfz_info ri on ri.role_id=ar.role_id
+					left join role_dfz_module rm on rm.role_id=ri.role_id
+					left join module_dfz_info mi on mi.module_id=rm.module_id
+					<where>
+						<if test='roleName!=null &amp;&amp; !roleName.equals("")'>
+							and ri.name like '%'||#{roleName}||'%'
+						</if>
+						<if test="moduleId != null">
+							and mi.module_id=#{moduleId}
+						</if>
+					</where>
+				)
+				order by admin_id
+			) a
+		) where r>#{begin} and r&lt;#{end}
+	</select>
+	<!-- 查询管理员对应的角色 -->
+	<select id="findRoleByAdminId"
+		parameterType="int"
+		resultType="com.tarena.entity.Role">
+		select * from role_dfz_info
+		where role_id in (
+			select role_id from admin_dfz_role
+			where admin_id=#{admin_id}
+		)
+	</select>
+	<!-- 使用resultMap将管理员和角色自动装配 -->
+	<resultMap id="adminMap" 
+		type="com.tarena.entity.Admin">
+		<id column="admin_id" property="admin_id"/>
+		<collection select="findRoleByAdminId"
+			column="admin_id" 
+			javaType="arraylist"
+			ofType="com.tarena.entity.Role"
+			property="roles">
+		</collection>
+	</resultMap>	
+	
+	<!-- findRows -->
+	<select id="findRows"
+		parameterType="com.tarena.entity.page.AdminPage"
+		resultType="int">
+		select count(*) from admin_dfz_info
+		where admin_id in (
+			select ai.admin_id
+			from admin_dfz_info ai
+			left join admin_dfz_role ar on ar.admin_id=ai.admin_id
+			left join role_dfz_info ri on ri.role_id=ar.role_id
+			left join role_dfz_module rm on rm.role_id=ri.role_id
+			left join module_dfz_info mi on mi.module_id=rm.module_id
+			<where>
+				<if test='roleName!=null &amp;&amp; !roleName.equals("")'>
+					and ri.name like '%'||#{roleName}||'%'
+				</if>
+				<if test="moduleId != null">
+					and mi.module_id=#{moduleId}
+				</if>
+			</where>
+		)		
+	</select>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <!-- updatePassWord -->
+ <update id="updatePassWord" parameterType="hashmap">
+ 	update admin_dfz_info set
+ 	password=#{defaultPassWord}
+ 	where admin_id in
+ 		<foreach collection="adminIds"
+ 						item="adminId"
+ 						open="("
+ 						close=")"
+ 						separator=",">
+ 						#{adminId}		
+ 		</foreach>
+ </update>
+ 
+ <select id="findByName" parameterType="string" resultType="com.tarena.entity.Admin">
+ 		select * from admin_dfz_info where 	admin_code=#{name}
+ </select>
+ 
+ <!-- 显示登录首页时用 -->
+	<select id="findByAdminId"
+		parameterType="int"
+		resultType="com.tarena.entity.Module">
+		select * from module_dfz_info
+		where module_id in(
+			select mi.module_id from admin_info ai
+			inner join admin_dfz_role ar on ar.admin_id=ai.admin_id
+			inner join role_dfz_info ri on ri.role_id=ar.role_id
+			inner join role_dfz_module rm on rm.role_id=ri.role_id
+			inner join module_dfz_info mi on mi.module_id=rm.module_id
+			where ai.admin_id=#{adminId}
+		)
+		order by module_id		
+	</select>
+
+ <!-- 向admin中插入数据 -->
+ 
+<insert id="save" parameterType="com.tarena.entity.Admin">
+   <selectKey keyProperty="admin_id"
+					order="BEFORE"  resultType="int">
+			             select seq_admin_dfz.nextval  from dual
+   </selectKey>
+	insert into admin_dfz_info values(#{admin_id},
+									   #{admin_code,jdbcType=VARCHAR},
+									   #{password,jdbcType=VARCHAR},
+									   #{name,jdbcType=VARCHAR},
+									   #{telephone,jdbcType=VARCHAR},
+									   #{email,jdbcType=VARCHAR},
+									   #{enrolldate,jdbcType=TIMESTAMP}									
+									)
+</insert>
+ 
+ 
+ <insert id="saveadminRole" parameterType="hashmap">
+ insert into admin_dfz_role values(#{admin_id},#{role_id})
+ </insert>
+ 
+ 
+ <delete id="delete" parameterType="int">
+ delete admin_dfz_info where admin_id=#{id}
+ </delete>
+ 
+ <!-- 删除中间表 -->
+ <delete id="deleteAdminRole" parameterType="int">
+ delete admin_dfz_role where admin_id=#{id}
+ </delete>
+ 
+ <!-- 通过id找对象 -->
+ <select id="findById" parameterType="int" resultMap="adminMap">
+select * from admin_dfz_info where admin_id=#{id} 
+ </select>
+ 
+ <select id="finds" resultType="com.tarena.entity.Role"> 
+ select * from role_dfz_info 
+ </select>
+ 
+ 
+ <update id="update" parameterType="com.tarena.entity.Admin">
+ update admin_dfz_info set name=#{name},telephone=#{telephone},email=#{email}
+ 			where admin_id=#{admin_id}
+ 					
+ 
+ </update>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ </mapper>

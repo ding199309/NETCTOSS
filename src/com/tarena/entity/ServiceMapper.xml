@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.tarena.dao.ServiceMapper">
+
+<select id="findByPage"  parameterType="com.tarena.entity.page.ServicePage"
+					resultType="hashmap">
+					
+		select * from (
+			select a.*,rownum r from (
+				select s.*,
+				a.idcard_no,a.real_name,
+				c.name,c.descr
+				from service_dfz s
+				join account_dfz a on a.account_id=s.account_id
+				join cost_dfz c on c.cost_id=s.cost_id
+				<where>
+					<if test='osUserName!=null &amp;&amp; !osUserName.equals("")'>
+						and s.os_username=#{osUserName}
+					</if>
+					<if test='unixHost!=null &amp;&amp; !unixHost.equals("")'>
+						and s.unix_host=#{unixHost}
+					</if>
+					<if test='idcardNo!=null &amp;&amp; !idcardNo.equals("")'>
+						and a.idcard_no=#{idcardNo}
+					</if>
+					<if test='status!=null &amp;&amp; !status.equals("")'>
+						and s.status=#{status}
+					</if>
+				</where>
+				order by s.service_id
+			) a
+		) where r>#{begin} and r&lt;=#{end}		
+</select>
+
+<select id="findRows" 
+			 parameterType="com.tarena.entity.page.ServicePage"
+			 resultType="int">
+			
+		select count(*) 
+				from  service_dfz s
+				join account_dfz a   on  a.account_id=s.account_id
+				join cost_dfz c  on  c.cost_id=s.cost_id
+				<where>
+					<if test='osUserName!=null &amp;&amp; !osUserName.equals("")'>
+						and s.os_username=#{osUserName}
+					</if>
+					<if test='unixHost!=null &amp;&amp; !unixHost.equals("")'>
+						and s.unix_host=#{unixHost}
+					</if>
+					<if test='idcardNo!=null &amp;&amp; !idcardNo.equals("")'>
+						and a.idcard_no=#{idcardNo}
+					</if>
+					<if test='status!=null &amp;&amp; !status.equals("")'>
+						and s.status=#{status}
+					</if>								
+				</where>
+</select>
+
+	<!-- 开通 -->
+	<update id="start"
+		parameterType="int">
+		update service_dfz  set status='0',
+		pause_date=null
+		where service_id=#{id}
+	</update>
+
+<!-- 暂停 -->
+	<update id="pause"  parameterType="int">
+		update service_dfz set status='1',pause_date=sysdate
+		where service_id=#{id}
+	</update>
+
+	<delete id="delete" parameterType="int">
+		update service_dfz set status='2',close_date=sysdate where service_id=#{id}
+	
+	</delete>
+
+<select id="findById" parameterType="int"
+			resultType="com.tarena.entity.Service">
+			
+			select * from service_dfz where service_id=#{id}
+</select>
+
+<update id="pauseByAccountId"  parameterType="int">
+
+update service_dfz set status='1',
+		pause_date=sysdate
+		where account_id=#{accountId}
+
+</update>
+<update id="deleteByAccountId"  parameterType="int">
+
+update service_dfz set status='2',
+		pause_date=sysdate
+		where account_id=#{accountId}
+
+</update>
+
+<insert  id="addService"  parameterType="com.tarena.entity.Service">
+
+	insert into service_dfz values(seq_service_dfz.nextval,
+														#{account_id,jdbcType=INTEGER},
+														#{unix_host,jdbcType=VARCHAR},
+														#{os_username,jdbcType=VARCHAR},
+														#{login_passwd,jdbcType=VARCHAR},
+														#{status,jdbcType=CHAR},
+														#{create_date,jdbcType=DATE},
+														#{pause_date,jdbcType=DATE},
+														#{close_date,jdbcType=DATE},
+														#{cost_id,jdbcType=INTEGER})
+
+</insert>
+
+<insert id="update" parameterType="com.tarena.entity.Service">
+
+	insert into service_dfz_update_bak values(seq_service_dfz_bak.nextval,
+												#{service_id,jdbcType=INTEGER},
+												#{cost_id,jdbcType=INTEGER})
+
+</insert>
+
+
+
+
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.tarena.dao.CostMapper">
+
+<select id="findAllCost"  resultType="com.tarena.entity.Cost">
+	select * from cost_dfz order by cost_id
+
+</select>
+
+
+<insert id="save" parameterType="com.tarena.entity.Cost">
+	insert into cost_dfz  values (seq_cost_dfz.nextval,
+									#{name,jdbcType=VARCHAR},
+									#{base_duration,jdbcType=INTEGER},
+									#{base_cost,jdbcType=DOUBLE},
+									#{unit_cost,jdbcType=DOUBLE},
+									#{status,jdbcType=CHAR},
+									#{descr,jdbcType=VARCHAR},
+									#{creatime,jdbcType=TIMESTAMP},
+									#{startime,jdbcType=TIMESTAMP},
+									#{cost_type,jdbcType=CHAR}) 
+
+</insert>
+<delete id="delete" parameterType="int">
+	delete from cost_dfz where cost_id=#{cost_id}
+</delete>
+
+
+
+<!-- 根据id查询资费 -->
+<!--
+	parameterType可以使用别名 
+
+ -->
+<select id="findByid"  parameterType="int" 
+		resultType="com.tarena.entity.Cost">
+
+	select * from cost_dfz where cost_id=#{cost_id}
+
+
+</select>
+<!-- 修改 -->
+
+<update id="update"  parameterType="com.tarena.entity.Cost">
+	update cost_dfz set name=#{name,jdbcType=VARCHAR},
+							cost_type=#{cost_type,jdbcType=CHAR},
+							base_duration=#{base_duration,jdbcType=DOUBLE},
+							base_cost=#{base_cost,jdbcType=DOUBLE},
+							unit_cost=#{unit_cost,jdbcType=DOUBLE},
+							descr=#{descr,jdbcType=CHAR}
+													
+							where cost_id=#{cost_id}
+</update>
+
+<!-- 分页机制 -->
+<select id="findByPage" parameterType="com.tarena.entity.page.CostPage"
+						resultType="com.tarena.entity.Cost">
+	
+		select * from ( 
+			select e.*,rownum r  from(
+   				 (select* from cost_dfz)  e )
+   		) where r>#{begin} and r &lt;#{end}
+</select>
+
+
+<select id="findRows" resultType="int">
+	select count(*) from cost_dfz
+
+</select>
+
+
+
+
+
+
+
+</mapper>
